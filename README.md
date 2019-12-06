@@ -5,5 +5,8 @@ Feature :
  - AJAX for Every CRUD Operation
  - PDO for Database Operation
  - PDF Reporting
-
-
+# Login Admin
+ email : muttaqinyoga@gmail.com
+ password : admin1234
+# Login User
+ I forgot user password. But it can changed by admin/master in user list page.

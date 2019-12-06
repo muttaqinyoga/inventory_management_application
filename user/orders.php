@@ -349,4 +349,4 @@
 		});
 	</script>
 
-<?php require_once '../templates/user_footer.php'; ?>
+<?php require_once '../templates/footer.php'; ?>

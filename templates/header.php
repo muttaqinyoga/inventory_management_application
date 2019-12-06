@@ -69,6 +69,8 @@
 						    <li role="presentation"><a role="menuitem" href="<?php echo base_url; ?>admin/brands.php">Brand</a></li>
 						    <li role="presentation"><a role="menuitem" href="<?php echo base_url; ?>admin/products.php">Product</a></li>
 						    <li role="presentation"><a role="menuitem" href="<?php echo base_url; ?>user/orders.php">Order</a></li>
+						    <li role="presentation"><a role="menuitem" href="<?php echo base_url; ?>user/">Profile</a></li>
+						    <li role="presentation"><a role="menuitem" href="<?php echo base_url; ?>user/profile.php">Edit Account</a></li>
 						  </ul>
 						  <?php else : ?>
 						  <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">

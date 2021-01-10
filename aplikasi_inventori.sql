@@ -68,19 +68,35 @@ INSERT INTO `categories` (`category_id`, `category_name`) VALUES
 --
 -- Struktur dari tabel `credits`
 --
--- Kesalahan membaca struktur untuk tabel aplikasi_inventori.credits: #1932 - Table 'aplikasi_inventori.credits' doesn't exist in engine
--- Kesalahan membaca data untuk tabel aplikasi_inventori.credits: #1064 - You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'FROM `aplikasi_inventori`.`credits`' at line 1
+CREATE TABLE `angsuran` (
+  `angsuran_id` char(36) NOT NULL DEFAULT 'uuid()',
+  `order_id` char(36) NOT NULL DEFAULT 'uuid()',
+  `dana_pertama` char(36) NOT NULL DEFAULT 'uuid()',
+  `tanggal_mulai_angsuran` datetime NOT NULL,
+  `tanggal_akhir_angsuran` datetime NOT NULL,
+  `bayaran_per_bulan` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
 --
 -- Struktur dari tabel `orderdetails`
 --
+CREATE TABLE `pesanan` (
+  `pesanan_id` char(36) NOT NULL DEFAULT 'uuid()',
+  `nomor_pesanan` varchar(100) NOT NULL DEFAULT 'uuid()',
+  `waktu_pemesanan` datetime NOT NULL,
+  `total_harga` double NOT NULL,
+  `metode_pembayaran` enum('cash', 'credit') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `orderdetails` (
   `orderdetails_id` char(36) NOT NULL DEFAULT 'uuid()',
   `order_id` char(36) NOT NULL DEFAULT 'uuid()',
   `product_id` char(36) NOT NULL DEFAULT 'uuid()',
+  `receiver_name` varchar(255) NOT NULL,
+  `receiver_phone` char(12) NOT NULL,
+  `receiver_address` varchar(255) NOT NULL,
   `quantity_ordered` int(11) NOT NULL,
   `total_price` double NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -99,12 +115,12 @@ CREATE TABLE `orderdetails` (
 -- Struktur dari tabel `payments`
 --
 
-CREATE TABLE `payments` (
-  `payment_id` char(36) NOT NULL DEFAULT 'uuid()',
-  `amount` double NOT NULL,
-  `order_id` char(36) NOT NULL DEFAULT 'uuid()',
-  `payment_status` enum('Lunas','Masih Terhutang') NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- CREATE TABLE `payments` (
+--   `payment_id` char(36) NOT NULL DEFAULT 'uuid()',
+--   `amount` double NOT NULL,
+--   `order_id` char(36) NOT NULL DEFAULT 'uuid()',
+--   `payment_status` enum('Lunas','Masih Terhutang') NOT NULL
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -192,14 +208,18 @@ ALTER TABLE `categories`
 --
 -- Indeks untuk tabel `orderdetails`
 --
+ALTER TABLE `pesanan`
+  ADD PRIMARY KEY (`pesanan_id`);
+ALTER TABLE `angsuran`
+  ADD PRIMARY KEY (`angsuran_id`);
 ALTER TABLE `orderdetails`
   ADD PRIMARY KEY (`orderdetails_id`);
 
 --
 -- Indeks untuk tabel `payments`
 --
-ALTER TABLE `payments`
-  ADD PRIMARY KEY (`payment_id`);
+-- ALTER TABLE `payments`
+--   ADD PRIMARY KEY (`payment_id`);
 
 --
 -- Indeks untuk tabel `stuffs`

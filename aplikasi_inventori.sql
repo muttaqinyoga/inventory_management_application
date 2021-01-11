@@ -90,15 +90,14 @@ CREATE TABLE `pesanan` (
   `metode_pembayaran` enum('cash', 'credit') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `orderdetails` (
-  `orderdetails_id` char(36) NOT NULL DEFAULT 'uuid()',
-  `order_id` char(36) NOT NULL DEFAULT 'uuid()',
-  `product_id` char(36) NOT NULL DEFAULT 'uuid()',
-  `receiver_name` varchar(255) NOT NULL,
-  `receiver_phone` char(12) NOT NULL,
-  `receiver_address` varchar(255) NOT NULL,
-  `quantity_ordered` int(11) NOT NULL,
-  `total_price` double NOT NULL
+CREATE TABLE `detail_pesanan` (
+  `detail_pesanan_id` char(36) NOT NULL DEFAULT 'uuid()',
+  `pesanan_id` char(36) NOT NULL DEFAULT 'uuid()',
+  `stuff_id` char(36) NOT NULL DEFAULT 'uuid()',
+  `nama_penerima` varchar(255) NOT NULL,
+  `telepon_penerima` char(12) NOT NULL,
+  `alamat_penerima` varchar(255) NOT NULL,
+  `jumlah_yang_diorder` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -212,8 +211,8 @@ ALTER TABLE `pesanan`
   ADD PRIMARY KEY (`pesanan_id`);
 ALTER TABLE `angsuran`
   ADD PRIMARY KEY (`angsuran_id`);
-ALTER TABLE `orderdetails`
-  ADD PRIMARY KEY (`orderdetails_id`);
+ALTER TABLE `detail_pesanan`
+  ADD PRIMARY KEY (`detail_pesanan_id`);
 
 --
 -- Indeks untuk tabel `payments`

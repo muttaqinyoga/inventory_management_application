@@ -108,6 +108,9 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 
 			</router-view>
 		</transition>
+		<div id="notFound" class="row justify-content-center">
+			
+		</div>
 		<!-- End Router View -->
 	</div>
 	<!-- Dashboard templates -->
@@ -130,7 +133,7 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 									<div class="col-md-4">
 										<div class="well-info dash-box">
 											<h2 class="text-light"><span class="glyphicon glyphicon-user"></span> 0</h2>
-											<h4 class="text-light">Total User</h4>
+											<h4 class="text-light">Total order hari ini</h4>
 										</div>
 									</div>
 									<div class="col-md-4">
@@ -149,25 +152,78 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 							</div>
 						</div>
 					</div>
-					<div class="row">
-						<div class="col-md-12">
-							<div class="panel panel-default">
-								<div class="panel-heading-success">Order Terbaru</div>
-								<div class="panel-body">
-									<div class="table-responsive">
-										<table class="table table-striped table-hover table-bordered">
-
-										</table>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
 				</div>
 			</section>
 		</section>
 	</template>
 	<!-- End Dashboard templates -->
+	<!-- Account templates -->
+	<template id="account">
+		<section>
+			<section id="breadcrumb">
+				<div class="container">
+					<ol class="breadcrumb">
+						<li class="active">Akun</li>
+					</ol>
+				</div>
+			</section>
+			<div class="container">
+				<span id="message">
+
+				</span>
+				<div class="row">
+					<div class="col-md-8 col-md-offset-2">
+						<div class="panel panel-default">
+							<div class="panel-heading-blue-grey">
+								<h3 class="text-white">Informasi Akun</h3>
+							</div>
+							<div class="panel-body">
+								<div class="col-xs-4">
+									<img src="../img/default.png" class="img-responsive">
+								</div>
+								<div class="col-xs-8">
+									<h4 class="text-black"><span class="glyphicon glyphicon-user"></span> {{$parent.users[0]['user_name']}}</h4>
+									<h4 class="text-black"><span class="glyphicon glyphicon-file"></span> {{$parent.users[0]['user_role']}}</h4>
+									<h4 class="text-black"><span class="glyphicon glyphicon-envelope"></span> {{$parent.users[0]['user_email']}}</h4>
+									<p class="text-danger">Jika ingin mengubah data silahkan isi form dibawah</p>
+									<form method="post" v-on:submit.prevent="$parent.updateUser">
+										<div class="row">
+											<div class="col-xs-6">
+												<div class="form-group">
+													<label for="userName">Nama</label>
+													<input type="text" v-model="$parent.user.name" id="userName" name="name" class="form-control" placeholder="Masukkan nama...">
+												</div>
+												<div class="form-group">
+													<label for="userEmail">Email</label>
+													<input type="email" v-model="$parent.user.email" id="userEmail" name="email" class="form-control" placeholder="Masukkan email...">
+												</div>
+											</div>
+											<div class="col-xs-6">
+												<div class="form-group">
+													<label for="userPassword">Password</label>
+													<input type="password" v-model="$parent.user.password" id="userPassword" name="password" class="form-control" placeholder="Masukkan password...">
+												</div>
+												<div class="form-group">
+													<label for="confirmPassword">Isi ulang Password</label>
+													<input type="password" v-model="$parent.user.confirm_password" id="confirmPassword" name="confirm_password" class="form-control" placeholder="Konfirmasi password...">
+												</div>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-xs-12">
+												<button type="submit" class="btn btn-warning form-control" id="updateUserBtn">Simpan</button>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</template>
+	<!-- End Account templates -->
 	<!-- Categories templates -->
 	<template id="categories">
 		<section>
@@ -638,6 +694,7 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 								<div class="form-group">
 									<label for="productCategory">Kategori</label>
 									<select class="form-control" v-model="$parent.product.category" id="productCategory" name="category" @change="$parent.getBrandsByCategory">
+										<option value="" selected="">-- Pilih kateogori --</option> 
 										<option v-for="(category, i) in $parent.categories" :value="category.category_id">
 											{{category.category_name}}
 										</option>
@@ -698,6 +755,7 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 								<div class="form-group">
 									<label for="productCategory">Kategori</label>
 									<select class="form-control" v-model="$parent.product.category" id="productUpdateCategory" name="category" @change="$parent.getBrandsByCategory">
+
 										<option v-for="(category, i) in $parent.categories" :value="category.category_id">
 											{{category.category_name}}
 										</option>
@@ -759,7 +817,6 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 		</section>
 	</template>
 	<!-- Products Templates -->
-
 	<!-- End Products Templates -->
 	<!-- Orders Templates -->
 	<template id="orders">
@@ -799,13 +856,13 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 											<tbody>
 												<tr v-for="(order, i) in $parent.orders" :key="i">
 													<td>{{ ++i }}</td>
-													<td>{{ order.order_invoice_number }}</td>
-													<td>{{ order.order_created_at }}</td>
-													<td>{{order.order_total_price }}</td>
-													<td>{{ order.order_payment_type }}</td>
+													<td>{{ order.nomor_pesanan }}</td>
+													<td>{{ $parent.formatWaktu(order.waktu_pemesanan) }}</td>
+													<td>Rp. {{ $parent.formatRupiah(order.total_harga) }}</td>
+													<td>{{ order.metode_pembayaran }}</td>
 													<td>
-														<router-link class="btn btn-warning" :to="{name: 'orderdetails', params: {id: order.order_id} }">Detail</router-link>
-														<button class="btn btn-danger" data-toggle="modal" data-target="#deleteOrderModal" @click="$parent.confirmDeleteOrder(order.order_id, order.order_invoice_number)">Hapus</button>
+														<router-link class="btn btn-warning" :to="{name: 'orderdetails', params: {id: order.pesanan_id} }">Detail</router-link>
+														<button class="btn btn-danger" data-toggle="modal" data-target="#deleteOrderModal" @click="$parent.confirmDeleteOrder(order.pesanan_id, order.nomor_pesanan)">Batalkan Order</button>
 													</td>
 												</tr>
 											</tbody>
@@ -820,7 +877,7 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 			<div id="addOrderModal" class="modal fade">
 				<div class="modal-dialog">
 					<div class="modal-content">
-						<form method="post" v-on:submit.prevent="$parent.addProduct">
+						<form method="post" v-on:submit.prevent="$parent.addOrder">
 							<div class="modal-header bg-grey">
 								<button type="button" style="color: #fff;" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 								<h4 class="modal-title text-white">Buat order baru</h4>
@@ -831,22 +888,18 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 									<input type="text" name="receiver" id="orderReceiver" class="form-control" v-model="$parent.order.receiver" placeholder="Masukkan nama pelanggan...">
 								</div>
 								<div class="form-group">
-									<label for="orderReceiverEmail">Email Pelanggan</label>
-									<input type="email" name="receiver_email" id="orderReceiverEmail" class="form-control" v-model="$parent.order.receiver_email" placeholder="Masukkan email pelanggan...">
-								</div>
-								<div class="form-group">
-									<label for="orderReceiverPhone">Nama Pelanggan</label>
+									<label for="orderReceiverPhone">No. HP/Telepon</label>
 									<input type="number" name="receiver_phone" id="orderReceiverPhone" class="form-control" v-model="$parent.order.receiver_phone" placeholder="Masukkan nomor HP/Telepon pelanggan..." min="0">
 								</div>
 								<div class="form-group">
 									<label for="orderReceiverAddress">Alamat Orderan</label>
-									<input type="text" name="receiver_address" id="orderReceiverAddress" class="form-control" v-model="$parent.order.receiver" placeholder="Masukkan alamat pemesanan...">
+									<input type="text" name="receiver_address" id="orderReceiverAddress" class="form-control" v-model="$parent.order.receiver_address" placeholder="Masukkan alamat pemesanan...">
 								</div>
 								<div class="form-group">
 									<label for="orderProduct">Produk</label>
 									<select class="form-control" v-model="$parent.order.product" id="orderProduct" name="product">
-										<option selected value="">-- Pilih produk --</option>
-										<option v-for="(product, i) in $parent.products" :value="product.product_id">
+										<option value="" selected="" >-- Pilih produk --</option>
+										<option v-for="(product, i) in $parent.products" :value="product.stuff_id">
 											{{product.stuff_name}} ( Rp. {{$parent.formatRupiah(product.stuff_sale_price)}} )
 										</option>
 									</select>
@@ -855,13 +908,16 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 									<label for="quantity_ordered">Jumlah barang yang diorder</label>
 									<input type="number" v-model="$parent.order.quantity_ordered" id="quantity_ordered" name="quantity_ordered" class="form-control" placeholder="Masukkan jumlah barang yang diorder" min="0">
 								</div>
-								<div class="form-group">
+								<div class="form-group" id="formPayment">
 									<label for="orderPaymentType">Metode Pembayaran</label>
-									<select class="form-control" v-model="$parent.order.payment_type" id="orderPaymentType" name="">
-										<option selected value="">-- Pilih metode pembayaran --</option>
-										<option v-for="(p) in $parent.payment_types" :value="p">{{ p }}</option>
+									<select id="orderPaymentType" class="form-control" v-model="$parent.order.payment_type" id="orderPaymentType" name="payment_type" @change="$parent.checkPaymentType">
+										<option value="" selected>-- Pilih metode pembayaran --</option>
+										<option v-for="( p ) in $parent.payment_types" :value="p">{{ p }}</option>
 									</select>
 								</div>
+								<!-- <div class="form-group credits">
+									
+								</div> -->
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-dark" data-dismiss="modal">Batal</button>
@@ -872,29 +928,117 @@ define('base_url', 'http://localhost/aplikasi-inventori-produk/');
 				</div>
 			</div>
 			
-			<!-- <div id="deleteProductModal" class="modal fade">
+			<div id="deleteOrderModal" class="modal fade">
 				<div class="modal-dialog">
 					<div class="modal-content">
 						<div class="modal-header bg-red">
 							<button type="button" style="color: #fff;" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-							<h4 class="modal-title text-white">Hapus Produk</h4>
+							<h4 class="modal-title text-white">Batalkan Order</h4>
 						</div>
 						<div class="modal-body">
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-dark" data-dismiss="modal">Batal</button>
-							<button type="button" class="btn btn-danger" id="deleteProductBtn" v-on:click="$parent.deleteProduct($parent.product_id)">Hapus</button>
+							<button type="button" class="btn btn-danger" id="deleteOrderBtn" v-on:click="$parent.deleteOrder($parent.order_id)">Ya</button>
 						</div>
 					</div>
 				</div>
-			</div> -->
+			</div>
 		</section>
 	</template>
 	<!-- End Order Templates -->
+	<!-- orderdetails -->
+	<template id="orderdetails">
+		<section>
+			<section id="breadcrumb">
+				<div class="container">
+					<span id="message">
+
+					</span>
+					<ol class="breadcrumb">
+						<li class="active">Detail Order</li>
+					</ol>
+					<div class="row justify-content-center">
+						<div class="col-md-12">
+							<div class="panel panel-default">
+								<div class="panel-heading-teal">
+									<h4 class="text-white text-center">Detail Order dengan nomor pesanan {{ orderdetails[0]['nomor_pesanan'] }} </h4>
+								</div>
+							</div>
+							<div class="panel-body">
+								<div class="table-responsive">
+								  <form method="post" v-on:submit.prevent="updateOrder(order_id)">
+			                        <table class="table">
+				                        <tr>
+				                            <td>Produk</td>
+				                            <td>
+				                            	<select class="form-control" v-model="orderdetail.product" name="product" style="width: 50%;">
+													<option v-for="(product, i) in $parent.products" :value="product.stuff_id">
+														{{product.stuff_name}}
+													</option>
+												</select>
+				                            </td>
+				                        </tr>
+				                        <tr>
+				                            <td>Jumlah orderan</td>
+				                            <td>
+				                            	<input class="form-control" type="number" min="0" style="width: 50%;" v-model="orderdetail.quantity_ordered" name="quantity_ordered">
+				                            </td>
+				                        </tr>
+				                        <tr>
+				                            <td>Total Harga</td>
+				                            <td>Rp. {{$parent.formatRupiah(orderdetails[0]['total_harga'])}}</td>
+				                        </tr>
+				                        <tr>
+				                        	<td>Metode Pembayaran</td>
+				                        	<td>
+				                            	<select class="form-control" v-model="orderdetail.payment_type" name="payment_type" style="width: 50%;">
+													<option v-for="(p) in $parent.payment_types" :value="p">
+														{{p}}
+													</option>
+												</select>
+				                            </td>
+				                        </tr>
+				                        <tr>
+				                            <td>Nama Pelanggan</td>
+				                            <td>
+				                            	<input class="form-control" type="text" style="width: 50%;" v-model="orderdetail.receiver" name="receiver">
+				                            </td>
+				                        </tr>
+				                        <tr>
+				                            <td>No. HP/Telepon</td>
+				                            <td>
+				                            	<input class="form-control" type="number" style="width: 50%;" v-model="orderdetail.receiver_phone" name="receiver_phone">
+				                            </td>
+				                        </tr>
+				                        <tr>
+				                            <td>Alamat</td>
+				                            <td>
+				                            	<input class="form-control" type="text" style="width: 50%;" v-model="orderdetail.receiver_address" name="receiver_address">
+				                            </td>
+				                        </tr>
+				                        <tr>
+				                            <td>Waktu Pemesanan</td>
+				                            <td>{{ $parent.formatWaktu(orderdetails[0]['waktu_pemesanan']) }}</td>
+				                        </tr>
+				                        <tr>
+				                            <td>
+				                                <button class="btn btn-danger form-control" id="updateOrderBtn" type="submit">Simpan</button>
+				                            </td>
+				                        </tr>
+				                    </table>
+				                    </form>
+			                    </div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</section>
+	</template>
+	<!-- end orderdetails -->
 	<script type="text/javascript" src="../vendor/bootstrap/js/jquery-3.3.1.min.js"></script>
 	<script type="text/javascript" src="../vendor/bootstrap/js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="../vendor/bootstrap/js/bootstrap-datepicker.min.js"></script>
-	<script type="text/javascript" src="../vendor/bootstrap/js/bootstrap-select.min.js"></script>
 	<script type="text/javascript" src="../vendor/vue/vue.js"></script>
 	<script type="text/javascript" src="../vendor/vue/vue-router.js"></script>
 	<script type="text/javascript" src="../vendor/vue/axios.min.js"></script>

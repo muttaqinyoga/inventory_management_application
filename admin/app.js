@@ -1,6 +1,11 @@
+axios.defaults.baseURL = 'http://localhost/aplikasi-inventori-toko/admin';
 // All components
 const dashboard = {
-	template: '#dashboard'
+	template: '#dashboard',
+	beforeRouteEnter(to, from, next){
+		$('#notFound').html('');
+		next();
+	}
 }
 const categories = {
 	template: '#categories',
@@ -15,28 +20,169 @@ const categories = {
 const brands = {
 	template: '#brands',
 	beforeRouteEnter(to, from, next) {
+		$('#notFound').html('');
 		next(vm => {
 			vm.$root.brand = {
 				name: '',
 				category: ''
 			}
-		})
+		});
 	}
 }
 const products = {
-	template: '#products'
+	template: '#products',
+	beforeRouteEnter(to, from, next) {
+		$('#notFound').html('');
+		next(vm => {
+			vm.$root.product = {
+				name: '',
+				category: '',
+				brand: '',
+				buy_price: '',
+				supplier: '',
+				sale_price: '',
+				stock: ''
+			}
+		});
+	}
 }
 const suppliers = {
-	template: '#suppliers'
+	template: '#suppliers',
+	beforeRouteEnter(to, from, next) {
+		$('#notFound').html('');
+		next(vm => {
+			vm.$root.supplier = {
+				name: '',
+				phone: '',
+				email: '',
+				address: ''
+			}
+		});
+	}
 }
 const orders = {
-	template: '#orders'
+	template: '#orders',
+	beforeRouteEnter(to, from, next) {
+		$('#notFound').html('');
+		if(from.name == 'orderdetails'){
+			next(vm => {
+				vm.$root.order = {
+					receiver: '',
+					receiver_phone: '',
+					receiver_address: '',
+					product: '',
+					quantity_ordered: '',
+					payment_type: ''
+				}
+				vm.$root.orders = [];
+				window.setTimeout(function(){
+					$('#message').html(`<div class="alert alert-warning">
+										  <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+										  <strong>Data order berhasil diubah</strong>
+										</div>`);
+					vm.$root.getOrders();
+				},500);
+			});
+		} else{
+			next(vm => {
+				vm.$root.order = {
+					receiver: '',
+					receiver_phone: '',
+					receiver_address: '',
+					product: '',
+					quantity_ordered: '',
+					payment_type: ''
+				}
+				vm.$root.getOrders();
+			});
+		}
+	},
+}
+const orderdetails = {
+	template: '#orderdetails',
+	data: function(){
+		return {
+			orderdetails: [],
+			orderdetail: {
+				product: '',
+				quantity_ordered: '',
+				payment_type: '',
+				receiver: '',
+				receiver_phone: '',
+				receiver_address: ''
+			},
+			order_id: ''
+		}
+	},
+	created () {
+	    this.getOrderDetails();
+	 },
+	watch: {
+		'$route' : 'getOrderDetails'
+	},
+	methods: {
+		getOrderDetails(){
+			const orderdetails_id  = this.$route.params.id;
+			$('#notFound').html('');
+			axios.get('/order.php?detail='+orderdetails_id)
+			.then( response => {
+				this.orderdetails = response.data;
+				this.order_id = this.orderdetails[0]['pesanan_id'];
+				this.orderdetail.product = this.orderdetails[0]['stuff_id'];
+				this.orderdetail.quantity_ordered = this.orderdetails[0]['jumlah_yang_diorder'];
+				this.orderdetail.receiver = this.orderdetails[0]['nama_penerima'];
+				this.orderdetail.receiver_phone = this.orderdetails[0]['telepon_penerima'];
+				this.orderdetail.receiver_address = this.orderdetails[0]['alamat_penerima'];
+				this.orderdetail.payment_type = this.orderdetails[0]['metode_pembayaran'];
+			})
+			.catch(error => {
+				$('#notFound').html(`<h2 class="text-center">Ooops Page Not Found</h2>`);
+			})
+		},
+		updateOrder(id){
+			let vm = this;
+			axios.patch('/order.php?id='+id, vm.orderdetail)
+				.then(response => {
+					$('.invalid-feedback').remove();
+					$('.is-invalid').removeClass('is-invalid');
+					$('#updateOrderBtn').html(`<span class="spinner-border"></span> Menyimpan`);
+					$('#updateOrderBtn').attr('disabled', true);
+					window.setTimeout(function () {
+						vm.order_id = '';
+						vm.orderdetail.product = '';
+						vm.orderdetail.quantity_ordered = '';
+						vm.orderdetail.receiver = '';
+						vm.orderdetail.receiver_phone = '';
+						vm.orderdetail.receiver_address = '';
+						vm.orderdetail.payment_type = '';
+						const message = `${response.data.message}`;
+						$('#updateOrderBtn').attr('disabled', false);
+						$('#updateOrderBtn').html(`Simpan`);
+						vm.$router.push('/orders');
+					}, 2000);
+				})
+				.catch(error => {
+					$('.invalid-feedback').remove();
+					$('.is-invalid').removeClass('is-invalid');
+					let {
+						response
+					} = error;
+					$.each(response.data.errors, function (i, err) {
+						const el = $(document).find('[name="' + i + '"]');
+						if (el) {
+							el.addClass('is-invalid');
+							el.after($('<div class="invalid-feedback">' + err + '</div>'));
+						}
+					});
+				});
+		},
+	}
 }
 const account = {
 	template: '#account'
 }
 // Instance App
-axios.defaults.baseURL = 'http://localhost/aplikasi-inventori-toko/admin';
+
 const app = new Vue({
 	el: '#app',
 	data: {
@@ -73,7 +219,6 @@ const app = new Vue({
 		orders: [],
 		order: {
 			receiver: '',
-			receiver_email: '',
 			receiver_phone: '',
 			receiver_address: '',
 			product: '',
@@ -81,7 +226,14 @@ const app = new Vue({
 			payment_type: ''
 		},
 		order_id: '',
-		payment_types: ['cash', 'credit']
+		payment_types: ['cash', 'credit'],
+		users: [],
+		user: {
+			name: '',
+			email: '',
+			password: '',
+			confirm_password: ''
+		}
 	},
 	router: new VueRouter({
 		routes: [{
@@ -114,11 +266,11 @@ const app = new Vue({
 				component: orders,
 				name: 'orders'
 			},
-			// {
-			// 	path: '/orders/details/:id',
-			// 	component: orderdetails,
-			// 	name: 'orderdetails'
-			// },
+			{
+				path: '/orders/details/:id',
+				component: orderdetails,
+				name: 'orderdetails'
+			},
 			{
 				path: '/account',
 				component: account,
@@ -290,6 +442,7 @@ const app = new Vue({
 					$('#updateBrandBtn').html(`<span class="spinner-border"></span> Mengubah`);
 					$('#updateBrandBtn').attr('disabled', true);
 					window.setTimeout(function () {
+						vm.brand_id = '';
 						vm.brand.name = '';
 						vm.brand.category = '';
 						const message = `${response.data.message}`;
@@ -326,7 +479,7 @@ const app = new Vue({
 				.then(response => {
 					window.setTimeout(function () {
 						const message = `${response.data.message}`;
-						vm.category_id = '';
+						vm.brand_id = '';
 						$('#deleteBrandModal').modal('hide');
 						$('#deleteBrandBtn').attr('disabled', false);
 						$('#deleteBrandBtn').html(`Hapus`);
@@ -405,6 +558,7 @@ const app = new Vue({
 					$('#updateSupplierBtn').html(`<span class="spinner-border"></span> Mengubah`);
 					$('#updateSupplierBtn').attr('disabled', true);
 					window.setTimeout(function () {
+						vm.supplier_id = '';
 						vm.supplier.name = '';
 						vm.supplier.phone = '';
 						vm.supplier.email = '';
@@ -536,6 +690,7 @@ const app = new Vue({
 					$('#updateProductBtn').html(`<span class="spinner-border"></span> Mengubah`);
 					$('#updateProductBtn').attr('disabled', true);
 					window.setTimeout(function () {
+						vm.product_id = '';
 						vm.product.name = '';
 						vm.product.category = '';
 						vm.product.brand = '';
@@ -577,7 +732,7 @@ const app = new Vue({
 				.then(response => {
 					window.setTimeout(function () {
 						const message = `${response.data.message}`;
-						vm.supplier_id = '';
+						vm.product_id = '';
 						$('#deleteProductModal').modal('hide');
 						$('#deleteProductBtn').attr('disabled', false);
 						$('#deleteProductBtn').html(`Hapus`);
@@ -585,13 +740,136 @@ const app = new Vue({
 					}, 2000);
 				});
 		},
-		clearOrderForm(){
-
+		getOrders(message = ''){
+			axios.get('/order.php')
+				.then(response => this.orders = response.data)
+			if (message != '') {
+				$('#message').html(message);
+			}
 		},
+		addOrder() {
+			let vm = this;
+			axios.post('/order.php', vm.order)
+				.then(response => {
+					$('.invalid-feedback').remove();
+					$('.is-invalid').removeClass('is-invalid');
+					$('#addOrderBtn').html(`<span class="spinner-border"></span> Menyimpan`);
+					$('#addOrderBtn').attr('disabled', true);
+					window.setTimeout(function () {
+						vm.order.receiver = '';
+						vm.order.receiver_phone = '';
+						vm.order.receiver_address = '';
+						vm.order.product = '';
+						vm.order.quantity_ordered = '';
+						vm.order.payment_type = '';
+						const message = `${response.data.message}`;
+						$('#addOrderModal').modal('hide');
+						$('#addOrderBtn').attr('disabled', false);
+						$('#addOrderBtn').html(`Simpan`);
+						vm.getOrders(message);
+					}, 2000);
+				})
+				.catch(error => {
+					$('.invalid-feedback').remove();
+					$('.is-invalid').removeClass('is-invalid');
+					let {
+						response
+					} = error;
+					$.each(response.data.errors, function (i, err) {
+						const el = $(document).find('[name="' + i + '"]');
+						if (el) {
+							el.addClass('is-invalid');
+							el.after($('<div class="invalid-feedback">' + err + '</div>'));
+						}
+					});
+				});
+		},
+		clearOrderForm(){
+			$('.invalid-feedback').remove();
+			$('.is-invalid').removeClass('is-invalid');
+			this.order.receiver = '';
+			this.order.receiver_phone = '';
+			this.order.receiver_address = '';
+			this.order.product = '';
+			this.order.quantity_ordered = '';
+			this.order.payment_type = '';
+			this.order_id = '';
+		},
+		confirmDeleteOrder(id, no){
+			this.order_id = id;
+			$('#deleteOrderModal .modal-body').html(`<p>Anda yakin ingin membatalkan order dengan no.  <strong>${no}</strong> ?</p>`);
+		},
+		deleteOrder(id){
+			let vm = this;
+			$('#deleteOrderBtn').html(`<span class="spinner-border"></span> Menghapus`);
+			$('#deleteOrderBtn').attr('disabled', true);
+			axios.delete('/order.php?id=' + id)
+				.then(response => {
+					window.setTimeout(function () {
+						const message = `${response.data.message}`;
+						vm.order_id = '';
+						$('#deleteOrderModal').modal('hide');
+						$('#deleteOrderBtn').attr('disabled', false);
+						$('#deleteOrdertBtn').html(`Ya`);
+						vm.getOrders(message);
+					}, 2000);
+				});
+		},
+		getAccount(message = ''){
+			axios.get('/user.php')
+				.then(response => this.users = response.data)
+			if (message != '') {
+				$('#message').html(message);
+			}
+		},
+		updateUser(){
+			let vm = this;
+			axios.patch('/user.php', vm.user)
+				.then(response => {
+					$('.invalid-feedback').remove();
+					$('.is-invalid').removeClass('is-invalid');
+					$('#updateUserBtn').html(`<span class="spinner-border"></span> Menyimpan`);
+					$('#updateUserBtn').attr('disabled', true);
+					window.setTimeout(function () {
+						vm.user.name = '';
+						vm.user.email = '';
+						vm.user.password = '';
+						vm.user.confirm_password = '';
+						const message = `${response.data.message}`;
+						$('#updateUserBtn').attr('disabled', false);
+						$('#updateUserBtn').html(`Simpan`);
+						vm.getAccount(message);
+					}, 2000);
+				})
+				.catch(error => {
+					$('.invalid-feedback').remove();
+					$('.is-invalid').removeClass('is-invalid');
+					let {
+						response
+					} = error;
+					$.each(response.data.errors, function (i, err) {
+						const el = $(document).find('[name="' + i + '"]');
+						if (el) {
+							el.addClass('is-invalid');
+							el.after($('<div class="invalid-feedback">' + err + '</div>'));
+						}
+					});
+				});
+		},
+		// checkPaymentType(){
+		// 	if(this.order.payment_type == 'credit'){
+		// 		$('#formPayment').after(``);
+		// 	}
+		// },
 		formatRupiah(x){
     		let parts = x.split(".");
 		    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 		    return parts.join(".");	
+		},
+		formatWaktu(d){
+			const t = new Date(d);
+			const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+			return `${t.getDate()} ${months[t.getMonth()]} ${t.getFullYear()} pukul ${t.getHours()}.${t.getMinutes()}.${t.getSeconds()} WIB`;
 		}
 	},
 	created() {
@@ -599,5 +877,7 @@ const app = new Vue({
 		this.getBrands();
 		this.getSuppliers();
 		this.getProducts();
+		this.getOrders();
+		this.getAccount();
 	}
 });
